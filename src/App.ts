@@ -1,6 +1,7 @@
 import { getCandlesFromCsv } from './load-csv';
 import { getTicksFromStaticJson } from './parse-api-json';
 import { calculateRsi } from './algo/rsi';
+import { calculateStochRsi } from './algo/stoch-rsi';
 import { Candle } from './types/candle';
 import { ApiTick } from './types/api';
 
@@ -38,15 +39,15 @@ const run = async () => {
     linkCandle(current, next, prev);
   });
 
-  console.log(`calculating rsi for ${candles[candles.length-1].timestamp}`);
-  const candle = calculateRsi(candles[candles.length-1]);
-  console.log(candle.rsi);
-
-  // const candles14 = candles.slice(0, 14);
-
-  // candles14.forEach(candle => {
-  //   addValue(candle);
-  // });
+  // const stopwatchStart = new Date().getMilliseconds();
+  const latestCandle = candles[candles.length - 1];
+  calculateRsi(latestCandle);
+  calculateStochRsi(latestCandle);
+  // const stopwatchStop = new Date().getUTCMilliseconds();
+  // console.log(`
+  //   Start: ${stopwatchStart}
+  //   End: ${stopwatchStop}
+  //   Elapsed time (ms): ${stopwatchStop - stopwatchStart}`);
 }
 
 (async () => {

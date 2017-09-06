@@ -7,8 +7,8 @@ interface Candle {
   volume: number;
   baseVolume: number;
   rs?: number;
-  rsi?: number;
-  stochRsi?: number;
+  rsi?: number | null;
+  stochRsi?: number | null;
   next: Candle | null;
   previous: Candle | null;
 }

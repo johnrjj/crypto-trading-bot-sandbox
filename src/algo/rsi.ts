@@ -1,4 +1,3 @@
-import { reverse } from 'lodash';
 import { Candle } from '../types/candle';
 import { getNPrevious } from '../util';
 
