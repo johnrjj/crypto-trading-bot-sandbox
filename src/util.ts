@@ -1,14 +1,18 @@
 import { reverse } from 'lodash';
 
-interface LinkedListLike {
-  next: any;
-  previous: any;
+// should next/prev be generics?
+interface LinkedListLike<T> {
+  next: T;
+  previous: T;
 }
 
-const getNPrevious = <T extends LinkedListLike>(current: T, numberToRetrieve: number): Array<T> => {
+const getNPrevious = <T extends LinkedListLike<T>>(current: T, numberToRetrieve: number, includeSelf : boolean= false): Array<T> => {
   let pointer = current;
   let accum = [];
-  let counter = numberToRetrieve;
+  let counter = includeSelf ? numberToRetrieve - 1 : numberToRetrieve;
+  if (includeSelf) {
+    accum.push(current);
+  }
   while (counter > 0 && pointer !== null && pointer.previous !== null) {
     accum.push(pointer.previous);
     pointer = pointer.previous;

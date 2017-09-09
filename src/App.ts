@@ -1,55 +1,247 @@
-import { getCandlesFromCsv } from './load-csv';
+// import { getCandlesFromCsv } from './load-csv';
 import { getTicksFromStaticJson } from './parse-api-json';
-import { calculateRsi } from './algo/rsi';
-import { calculateStochRsi } from './algo/stoch-rsi';
-import { Candle } from './types/candle';
+import { BittrexRepository, availableCurrencyPairs, availableTickIntervals } from './repositories/bittrex';
+import { TicksContainer } from './types/ticker';
+// import { calculateRsi } from './algo/rsi';
+// import { calculateStochRsi } from './algo/stoch-rsi';
+// import { calculateStochRsiSmma } from './algo/smoothed-moving-average';
+
+// import { Candle } from './types/candle';
 import { ApiTick } from './types/api';
 
-const convertApiToDomain = (tick: ApiTick) => {
-  const c: Candle = {
-    timestamp: tick.T,
-    open: tick.O,
-    close: tick.C,
-    high: tick.H,
-    low: tick.L,
-    volume: tick.V,
-    baseVolume: tick.BV,
-    next: null,
-    previous: null,
+const DEFAULT_TRADING_EXCHANGE = 'bittrex';
+const DEFAULT_TRADING_WINDOWS = ['fiveMin', '30min'];
+const DEFAULT_TRADING_CURRENCY = ['BTC-ETH'];
+
+
+const pairs = {
+  'BTC-ETH': {
+    current: '',
+    fiveMin: {
+
+    },
+    oneMin: {
+
+    },
   }
-  return c;
 }
 
-const linkCandle = (current: Candle, next: Candle, previous: Candle) => {
-  current.next = next;
-  current.previous = previous;
-  return;
+
+// const state = {
+//   selectedExchange: DEFAULT_TRADING_EXCHANGE,
+//   currencyPairs: new Map(),
+
+// }
+
+const refresh = async (x: any) => {
+  console.log('refresh');
+  await x.getLatestHistoryTicks();
+  setTimeout(() => refresh(x), 1500);
 }
 
-const run = async () => {
-  console.log('starting');
-
-  const candles = getTicksFromStaticJson()
-    .map(convertApiToDomain);
-
-  candles.forEach((curCandle, idx, candles) => {
-    const prev = candles[idx - 1] || null;
-    const next = candles[idx + 1] || null;
-    const current = curCandle;
-    linkCandle(current, next, prev);
-  });
-
-  // const stopwatchStart = new Date().getMilliseconds();
-  const latestCandle = candles[candles.length - 1];
-  calculateRsi(latestCandle);
-  calculateStochRsi(latestCandle);
-  // const stopwatchStop = new Date().getUTCMilliseconds();
-  // console.log(`
-  //   Start: ${stopwatchStart}
-  //   End: ${stopwatchStop}
-  //   Elapsed time (ms): ${stopwatchStop - stopwatchStart}`);
+const bootup = async () => {
+  const repo = new BittrexRepository(availableCurrencyPairs.BTC_ETH, availableTickIntervals.ONE_MINUTE);
+  const initialHistory = await repo.getTicks();
+  // const current = await BittrexRepository.getCurrentTick('BTC-ETH');
+  const foo = new TicksContainer('BTC-USD-fiveMin', repo, initialHistory);
+  refresh(foo);
+  // console.log(JSON.stringify(current));
 }
+
+
+// const convertApiToDomain = (tick: ApiTick) => {
+//   const c: Candle = {
+//     timestamp: tick.T,
+//     open: tick.O,
+//     close: tick.C,
+//     high: tick.H,
+//     low: tick.L,
+//     volume: tick.V,
+//     baseVolume: tick.BV,
+//     next: null,
+//     previous: null,
+//   }
+//   return c;
+// }
+
+// const linkCandle = (current: Candle, next: Candle, previous: Candle) => {
+//   current.next = next;
+//   current.previous = previous;
+//   return;
+// }
+
+// const run = async () => {
+//   console.log('starting');
+
+//   const candles = getTicksFromStaticJson()
+//     .map(convertApiToDomain);
+
+//   candles.forEach((curCandle, idx, candles) => {
+//     const prev = candles[idx - 1] || null;
+//     const next = candles[idx + 1] || null;
+//     const current = curCandle;
+//     linkCandle(current, next, prev);
+//   });
+
+
+//   let accountBalanceUSD_BuyAndHold = 1000.0;
+//   let accountBalanceCOIN_BuyAndHold = 0.0;
+
+//   let accountBalanceUSD = 1000.0;
+//   let accountBalanceCOIN = 0.0;
+//   let tradePercent = 0.70;
+//   let tradeCount = 0;
+
+//   // const stopwatchStart = new Date().getMilliseconds();
+//   // const latestCandle = candles[candles.length - 1];
+//   // calculateRsi(latestCandle);
+//   // calculateStochRsi(latestCandle);
+
+//   let startingIdx = 3000;
+//   let starting: Candle = candles[candles.length - (candles.length - startingIdx)];
+//   let end: Candle = candles[candles.length - 1];
+
+//   let lastUndersoldCandle: Candle = null;
+//   let lastOversoldCandle: Candle = null;
+
+//   const buyAmount_BuyAndHold = accountBalanceUSD_BuyAndHold;
+//   accountBalanceUSD_BuyAndHold = 0;
+//   accountBalanceCOIN_BuyAndHold += (buyAmount_BuyAndHold / starting.close);
+//   let startingTokenAmount = accountBalanceCOIN_BuyAndHold;
+//   let prevRsiLow = false;
+//   let prevRsiStochLow = false;
+//   let maxLowSeenRecently: number = null;
+//   for (let i = candles.length - startingIdx; i < candles.length - 1; i++) {
+
+//     const candle = candles[i];
+//     calculateRsi(candle);
+//     calculateStochRsi(candle);
+//     calculateStochRsiSmma(candle);
+//     // console.log(candle.smma, 'current cost...', candle.close);
+
+//     // either rsi top or a moon shot (> 30% gains)
+//     if (candle.rsi >= 70 && candle.smma >= 80 && accountBalanceCOIN > 0.0 || ((candle.close > (maxLowSeenRecently * 1.3))) && accountBalanceCOIN > 0.0 ) {
+
+//       lastOversoldCandle = candle;
+//       // console.log('here');
+//       // console.log(maxLowSeenRecently);
+//       if ((lastOversoldCandle.close > maxLowSeenRecently) && (lastOversoldCandle.close > (maxLowSeenRecently * 1.005))) {
+
+//         // if () {
+
+//         // }
+//       // if (lastOversoldCandle && lastUndersoldCandle) {
+
+//         const sellAmount = accountBalanceCOIN;
+//         const profit = sellAmount * lastOversoldCandle.close;
+//         accountBalanceUSD += profit;
+//         accountBalanceCOIN = 0.0;
+//         console.log(`selling @ ${lastOversoldCandle.close}!, new account balance (USD): ${accountBalanceUSD}`);
+        
+//         // accountBalanceUSD_BuyAndHold -= buyAmount;
+//         // accountBalanceCOIN = (buyAmount_BuyAndHold / lastOversoldCandle.close);
+  
+//         // const profit = lastOversoldCandle.close - lastUndersoldCandle.close;
+//         // console.log(profit);
+//         // profits += profit;
+//         tradeCount++;
+//         maxLowSeenRecently = 0;
+
+//         // } else {
+//         //   console.log('not enough coin ');
+//         // }
+//         // lastUndersoldCandle = null;
+//         // lastOversoldCandle = null;
+
+//       }
+
+
+
+//     }
+
+//     if ((candle.rsi >= 30 || candle.smma >= 20) && (prevRsiLow && prevRsiStochLow)) {
+//       prevRsiStochLow = false;
+//       prevRsiLow = false;
+
+//       lastUndersoldCandle = candle;
+
+//       const buyAmount = accountBalanceUSD * tradePercent;
+//       // console.log('account balane', accountBalanceUSD);
+
+//       if (accountBalanceUSD > buyAmount) {
+//         console.log(`buying @ ${lastUndersoldCandle.close}! ${lastUndersoldCandle.timestamp} (rsi ${lastUndersoldCandle.rsi}), stoch smma ${lastUndersoldCandle.smma}, new account balance (USD): ${accountBalanceUSD}`);
+//         accountBalanceUSD -= buyAmount;
+//         accountBalanceCOIN += (buyAmount / lastUndersoldCandle.close);
+//         maxLowSeenRecently = Math.max(maxLowSeenRecently, lastUndersoldCandle.close);
+//       }
+//     }
+
+//     // if ( 
+//     //   (candle.rsi > 30 && candle.stochRsi <= 20
+//     //   && 
+//     //   prevRsiLow && prevRsiStochLow)) {
+
+//     //     prevRsiStochLow = false;
+//     //     prevRsiLow = false;
+
+//     //     lastUndersoldCandle = candle;
+
+//     //     const buyAmount = accountBalanceUSD * tradePercent;
+//     //     console.log('account balane', accountBalanceUSD);
+
+//     //     if ( accountBalanceUSD > buyAmount) {
+//     //       console.log('buying');
+//     //       accountBalanceUSD -= buyAmount;
+//     //       accountBalanceCOIN += (buyAmount / lastUndersoldCandle.close);
+//     //     }
+//     //   }
+
+
+//     if (candle.rsi <= 30 && candle.smma <= 20) {
+//       // console.log('setting lowest');
+//       console.log(`low rsi: ${candle.rsi}, stoch: ${candle.smma}, stamp: ${candle.timestamp}`);
+//       prevRsiLow = true;
+//       prevRsiStochLow = true;
+
+//       // console.log('undersold');
+//     }
+
+
+//   }
+
+//   // const lastCandle = end;
+//   // const sellAmount = accountBalanceCOIN;
+//   // const profit = sellAmount * lastCandle.close;
+//   // accountBalanceUSD += profit;
+//   // accountBalanceCOIN = 0.0;
+
+//   // const sellAmountBuyAndHold = accountBalanceCOIN_BuyAndHold;
+//   // const profitBuyAndHold = sellAmountBuyAndHold * lastCandle.close;
+//   // accountBalanceUSD_BuyAndHold += profitBuyAndHold;
+//   // accountBalanceCOIN_BuyAndHold = 0.0;
+//   console.log(`open out coin: ${starting.close}, close out coin: ${end.close}, vs ${startingTokenAmount}`);
+
+//   console.log(`buy and hold: ${accountBalanceUSD_BuyAndHold} USD, ${accountBalanceCOIN_BuyAndHold} COIN`);
+//   console.log(`daytrade: ${accountBalanceUSD} USD, ${accountBalanceCOIN} COIN`);
+//   console.log('total trades', tradeCount);
+
+//   // console.log(`buy and hold: ${end.open - starting.open}`);
+//   // console.log(candles.length);
+//   console.log(`Earned ${accountBalanceCOIN - accountBalanceCOIN_BuyAndHold} coin`);
+//   console.log(`between ${starting.timestamp} and ${end.timestamp} there were ${tradeCount} trades`);
+
+//   // const stopwatchStop = new Date().getUTCMilliseconds();
+//   // console.log(`
+//   //   Start: ${stopwatchStart}
+//   //   End: ${stopwatchStop}
+//   //   Elapsed time (ms): ${stopwatchStop - stopwatchStart}`);
+// }
 
 (async () => {
-  await run();
+  try {
+    await bootup();    
+  } catch (e) {
+    console.log('Error running app, dumping error');
+    console.error(e);
+  }
 })();
