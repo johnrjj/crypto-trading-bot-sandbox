@@ -6,17 +6,23 @@ import { last } from 'lodash';
 class TicksContainer {
   pointer: HistoryTick = null;
   processQueue: Array<HistoryTick> = [];
+  currencyA: string;
+  currencyB: string;
   callbacks = [];
   repository: Repository;
   key: string;
   constructor(
     key,
     repository: Repository,
+    currencyA: string,
+    currencyB: string,
     initialHistory: Array<HistoryTick> = []
   ) {
     this.key = key;
     this.repository = repository;
     this.processQueue = [...initialHistory];
+    this.currencyA = currencyA;
+    this.currencyB = currencyB;
     this.processQueueStart();
     console.log('Finished processing initial history');
   }

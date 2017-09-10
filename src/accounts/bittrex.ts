@@ -13,7 +13,7 @@ class BittrexAccount implements Account {
   }
 
   withdrawl(currencyName: string, amountToWithdrawl: number) {
-    if (this.checkBalance(currencyName) - amountToWithdrawl > 0) {
+    if (this.checkBalance(currencyName) - amountToWithdrawl >= 0) {
       const oldBalance = this.checkBalance(currencyName);
       const newBalance = oldBalance - amountToWithdrawl;
       this.balances.set(currencyName, newBalance);

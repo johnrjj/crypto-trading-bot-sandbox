@@ -29,6 +29,7 @@ interface BittrexHistoryTickResponse {
 
 enum availableCurrencyPairs {
   BTC_ETH = 'BTC-ETH',
+  USDT_BTC = 'USDT-BTC',
   ETH_BTC = 'ETH-BTC',
   BTC_NEO = 'BTC-NEO',
 }

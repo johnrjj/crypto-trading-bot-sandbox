@@ -2,6 +2,7 @@ import { last } from 'lodash';
 import { Strategy } from '../types/strategy';
 import { HistoryTick } from '../types/tick';
 import { TicksContainer } from '../types/ticker';
+import { Trade, TradeType } from '../types/trade';
 import { getNPrevious } from '../util';
 import { calculateRsiFirst, calculateRsiSubsequent } from '../algo/rsi';
 import { calculateStochRsi } from '../algo/stoch-rsi';
@@ -47,7 +48,7 @@ class RsiStochRsiStrategy implements Strategy {
   lastSeenUndersold: HistoryTick = null;
   lastSeenOversold: HistoryTick = null;
 
-  run(t: TicksContainer) {
+  run(t: TicksContainer): Array<Trade> {
     if (t === null) {
       console.log('null in strat runner', t);
       return;
@@ -55,17 +56,25 @@ class RsiStochRsiStrategy implements Strategy {
     const rsi = this.getRsi(t.pointer);
     const stochRsi = this.getStockRsiSmma(t.pointer);
 
+    // If we don't have an RSI or StochRSI, don't do anything.
     if (rsi === null || stochRsi === null) {
       return null;
     }
 
     if (!this.hasBrokenOversoldThresholdRecently && isOversold(rsi, stochRsi)) {
       // console.log('oversold threshold broken');
-      console.log(
-        `oversold threshold broken\t@ ${t.pointer.close} -\t ${t.pointer
-          .timestamp}`
-      );
+      // console.log(
+      //   `oversold threshold broken\t@ ${t.pointer.close} -\t ${t.pointer
+      //     .timestamp}`
+      // );
       this.hasBrokenOversoldThresholdRecently = true;
+      const trade: Trade = {
+        currencyA: t.currencyA,
+        currencyB: t.currencyB,
+        type: TradeType.SELL,
+        currentPrice: t.pointer.close,
+      }
+      return [trade];
     } else if (
       this.hasBrokenOversoldThresholdRecently &&
       !isOversold(rsi, stochRsi)
@@ -76,11 +85,18 @@ class RsiStochRsiStrategy implements Strategy {
       !this.hasBrokenUndersoldThresholdRecently &&
       isUndersold(rsi, stochRsi)
     ) {
-      console.log(
-        `undersold threshold broken\t@ ${t.pointer.close} -\t ${t.pointer
-          .timestamp}`
-      );
+      // console.log(
+      //   `undersold threshold broken\t@ ${t.pointer.close} -\t ${t.pointer
+      //     .timestamp}`
+      // );
       this.hasBrokenUndersoldThresholdRecently = true;
+      const trade: Trade = {
+        currencyA: t.currencyA,
+        currencyB: t.currencyB,
+        type: TradeType.BUY,
+        currentPrice: t.pointer.close,
+      }
+      return [trade];
     } else if (
       this.hasBrokenUndersoldThresholdRecently &&
       !isUndersold(rsi, stochRsi)
@@ -88,6 +104,8 @@ class RsiStochRsiStrategy implements Strategy {
       // console.log('no longer undersold');
       this.hasBrokenUndersoldThresholdRecently = false;
     }
+
+    return null;
   }
 
   getRsi(t: HistoryTick): number {
