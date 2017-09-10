@@ -6,7 +6,11 @@ interface LinkedListLike<T> {
   previous: T;
 }
 
-const getNPrevious = <T extends LinkedListLike<T>>(current: T, numberToRetrieve: number, includeSelf : boolean= false): Array<T> => {
+const getNPrevious = <T extends LinkedListLike<T>>(
+  current: T,
+  numberToRetrieve: number,
+  includeSelf: boolean = false
+): Array<T> => {
   let pointer = current;
   let accum = [];
   let counter = includeSelf ? numberToRetrieve - 1 : numberToRetrieve;
@@ -19,8 +23,6 @@ const getNPrevious = <T extends LinkedListLike<T>>(current: T, numberToRetrieve:
     counter--;
   }
   return reverse(accum);
-}
+};
 
-export {
-  getNPrevious,
-}
+export { getNPrevious };

@@ -2,6 +2,4 @@ interface Strategy {
   run: Function;
 }
 
-export {
-  Strategy,
-};
+export { Strategy };

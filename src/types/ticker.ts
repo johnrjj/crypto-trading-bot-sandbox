@@ -9,7 +9,11 @@ class TicksContainer {
   callbacks = [];
   repository: Repository;
   key: string;
-  constructor(key, repository: Repository, initialHistory: Array<HistoryTick> = []) {
+  constructor(
+    key,
+    repository: Repository,
+    initialHistory: Array<HistoryTick> = []
+  ) {
     this.key = key;
     this.repository = repository;
     this.processQueue = [...initialHistory];
@@ -17,27 +21,31 @@ class TicksContainer {
     console.log('Finished processing initial history');
   }
 
-
   registerUpdate(fn: (t: TicksContainer) => {}) {
     this.callbacks.push(fn);
   }
 
   getLatestHistoryTicks = async () => {
     console.log(`Checking for new ticks for ${this.key}`);
-    const lastSeenHistoryTickTimestamp = (this.pointer && this.pointer.timestamp) || null;
+    const lastSeenHistoryTickTimestamp =
+      (this.pointer && this.pointer.timestamp) || null;
     const latestHistory = await this.repository.getTicks();
-    const historyNotYetProcessed: Array<HistoryTick> = latestHistory.filter(x => lastSeenHistoryTickTimestamp 
-      ? x.timestamp > lastSeenHistoryTickTimestamp
-      : true);
+    const historyNotYetProcessed: Array<HistoryTick> = latestHistory.filter(
+      x =>
+        lastSeenHistoryTickTimestamp
+          ? x.timestamp > lastSeenHistoryTickTimestamp
+          : true
+    );
     if (historyNotYetProcessed.length > 0) {
-      console.log(`${historyNotYetProcessed.length} new history items for ${this.key}`);
+      console.log(
+        `${historyNotYetProcessed.length} new history items for ${this.key}`
+      );
     }
     this.processQueue = [...historyNotYetProcessed];
     this.processQueueStart();
-  }
+  };
 
-  public addItem(item: HistoryTick) {
-  }
+  public addItem(item: HistoryTick) {}
 
   processQueueStart() {
     while (this.processQueue.length > 0) {
@@ -56,15 +64,11 @@ class TicksContainer {
     item.previous = this.pointer;
     // Set current pointer to the new item
     this.pointer = item;
-    console.log(`Added ${uuid}`);
+    // console.log(`Added ${uuid}`);
     this.callbacks.forEach(cb => {
       cb(this);
     });
   }
-
-
 }
 
-export {
-  TicksContainer,
-}
+export { TicksContainer };

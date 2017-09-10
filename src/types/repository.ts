@@ -5,6 +5,4 @@ interface Repository {
   getCurrentTick();
 }
 
-export {
-  Repository,
-}
+export { Repository };

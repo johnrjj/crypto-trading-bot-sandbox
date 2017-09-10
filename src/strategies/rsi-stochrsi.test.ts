@@ -4,24 +4,24 @@ import { TicksContainer } from '../types/ticker';
 import { HistoryTick } from '../types/tick';
 
 const closes: Array<number> = [
-  46.1250,
-  47.1250,
+  46.125,
+  47.125,
   46.4375,
   46.9375,
   44.9375,
-  44.2500,
-  44.6250,
-  45.7500,
+  44.25,
+  44.625,
+  45.75,
   47.8125,
   47.5625,
-  47.0000,
+  47.0,
   44.5625,
   46.3125,
   47.6875,
   46.6875,
   45.6875,
   43.0625,
-]
+];
 
 const createMockTick = (close: number): HistoryTick => {
   const foo: HistoryTick = {
@@ -36,7 +36,7 @@ const createMockTick = (close: number): HistoryTick => {
     previous: null,
   };
   return foo;
-}
+};
 
 const ticks = closes.map(createMockTick);
 ticks.forEach((t, idx, arr) => {
@@ -48,7 +48,7 @@ ticks.forEach((t, idx, arr) => {
 
 const strategy = new RsiStochRsiStrategy();
 const rsiArr = ticks.map((t, idx) => {
-  const rsi = strategy.getRsi(t);  
+  const rsi = strategy.getRsi(t);
   return rsi;
 });
 

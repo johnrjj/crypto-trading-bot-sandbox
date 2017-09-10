@@ -1,60 +1,41 @@
 import { BittrexRepository } from './repositories/bittrex';
+import { BittrexAccount } from './accounts/bittrex';
 import { TicksContainer } from './types/ticker';
-import { RsiStochRsiStrategy } from './strategies/rsi-stochrsi'
-
-const DEFAULT_TRADING_EXCHANGE = 'bittrex';
-const DEFAULT_TRADING_WINDOWS = ['fiveMin', '30min'];
-const DEFAULT_TRADING_CURRENCY = ['BTC-ETH'];
-
-const pairs = {
-  'BTC-ETH': {
-    current: '',
-    fiveMin: {
-
-    },
-    oneMin: {
-
-    },
-  }
-}
-
-
-// const state = {
-//   selectedExchange: DEFAULT_TRADING_EXCHANGE,
-//   currencyPairs: new Map(),
-
-// }
+import { RsiStochRsiStrategy } from './strategies/rsi-stochrsi';
 
 const refresh = async (x: any) => {
   await x.getLatestHistoryTicks();
   setTimeout(() => refresh(x), 1500);
-}
+};
 
 const bootup = async () => {
   const repo = new BittrexRepository(
-    BittrexRepository.availableCurrencyPairs.BTC_NEO, 
-    BittrexRepository.availableTickIntervals.ONE_MINUTE
+    BittrexRepository.availableCurrencyPairs.BTC_NEO,
+    BittrexRepository.availableTickIntervals.THIRTY_MINUTES
   );
+
+  const account = new BittrexAccount();
+  account.deposit('btc', 1000);
 
   const initialHistory = await repo.getTicks();
 
   const strat = new RsiStochRsiStrategy();
 
-  const foo = new TicksContainer('BTC-USD-fiveMin', repo);
-  foo.registerUpdate((newEntity) => {
+  const foo = new TicksContainer('BTC-NEO-ONEMINUTE', repo);
+  foo.registerUpdate(newEntity => {
     // console.log('new ent', Object.keys(newEntity));
     try {
-      strat.run(newEntity);      
+      const x = strat.run(newEntity);
     } catch (e) {
       console.log(e);
       throw e;
     }
     return {};
-  })
+  });
 
   refresh(foo);
   // console.log(JSON.stringify(current));
-}
+};
 
 // const run = async () => {
 //   console.log('starting');
@@ -68,7 +49,6 @@ const bootup = async () => {
 //     const current = curCandle;
 //     linkCandle(current, next, prev);
 //   });
-
 
 //   let accountBalanceUSD_BuyAndHold = 1000.0;
 //   let accountBalanceCOIN_BuyAndHold = 0.0;
@@ -123,10 +103,10 @@ const bootup = async () => {
 //         accountBalanceUSD += profit;
 //         accountBalanceCOIN = 0.0;
 //         console.log(`selling @ ${lastOversoldCandle.close}!, new account balance (USD): ${accountBalanceUSD}`);
-        
+
 //         // accountBalanceUSD_BuyAndHold -= buyAmount;
 //         // accountBalanceCOIN = (buyAmount_BuyAndHold / lastOversoldCandle.close);
-  
+
 //         // const profit = lastOversoldCandle.close - lastUndersoldCandle.close;
 //         // console.log(profit);
 //         // profits += profit;
@@ -140,8 +120,6 @@ const bootup = async () => {
 //         // lastOversoldCandle = null;
 
 //       }
-
-
 
 //     }
 
@@ -162,9 +140,9 @@ const bootup = async () => {
 //       }
 //     }
 
-//     // if ( 
+//     // if (
 //     //   (candle.rsi > 30 && candle.stochRsi <= 20
-//     //   && 
+//     //   &&
 //     //   prevRsiLow && prevRsiStochLow)) {
 
 //     //     prevRsiStochLow = false;
@@ -182,7 +160,6 @@ const bootup = async () => {
 //     //     }
 //     //   }
 
-
 //     if (candle.rsi <= 30 && candle.smma <= 20) {
 //       // console.log('setting lowest');
 //       console.log(`low rsi: ${candle.rsi}, stoch: ${candle.smma}, stamp: ${candle.timestamp}`);
@@ -191,7 +168,6 @@ const bootup = async () => {
 
 //       // console.log('undersold');
 //     }
-
 
 //   }
 
@@ -225,7 +201,7 @@ const bootup = async () => {
 
 (async () => {
   try {
-    await bootup();    
+    await bootup();
   } catch (e) {
     console.log('Error running app, dumping error');
     console.error(e);

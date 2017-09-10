@@ -1,10 +1,6 @@
-interface Tick {
+interface Tick {}
 
-}
-
-interface CurrentTick extends Tick {
-
-}
+interface CurrentTick extends Tick {}
 
 interface HistoryTick extends Tick {
   timestamp: string;
@@ -19,6 +15,4 @@ interface HistoryTick extends Tick {
   uuid?: string;
 }
 
-export {
-  HistoryTick,
-};
+export { HistoryTick };

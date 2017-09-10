@@ -7,15 +7,17 @@ import { mean } from 'lodash';
 
 const calculateSmmaFirstTime = (window: Array<number>) => mean(window);
 
-const calculateSmmaSubsequent = (previousSmma: number, newValue: number, smoothPeriod: number) => {
-  const newSmma = (((previousSmma * smoothPeriod) - previousSmma + newValue)) / smoothPeriod;
+const calculateSmmaSubsequent = (
+  previousSmma: number,
+  newValue: number,
+  smoothPeriod: number
+) => {
+  const newSmma =
+    (previousSmma * smoothPeriod - previousSmma + newValue) / smoothPeriod;
   return newSmma;
-}
+};
 
-export {
-  calculateSmmaFirstTime,
-  calculateSmmaSubsequent,
-}
+export { calculateSmmaFirstTime, calculateSmmaSubsequent };
 
 // // assumes using close
 // const smmaFormula = (candle: Candle, periods: number = 3) => {

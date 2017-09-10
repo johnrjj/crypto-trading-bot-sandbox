@@ -1,6 +1,5 @@
 import { calculateRsiFirst, calculateRsiSubsequent } from './rsi';
 
-
 const closings = [
   44.34,
   44.09,
@@ -8,7 +7,7 @@ const closings = [
   43.61,
   44.33,
   44.83,
-  45.10,
+  45.1,
   45.42,
   45.84,
   46.08,
@@ -20,7 +19,7 @@ const closings = [
 
 const diff = closings.map((cur, idx, arr) => {
   const prev = arr[idx - 1] || cur;
-  const change =  cur - prev;
+  const change = cur - prev;
   return change;
 });
 
