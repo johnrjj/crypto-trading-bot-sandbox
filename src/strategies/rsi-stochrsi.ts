@@ -17,31 +17,26 @@ class RsiStochRsiStrategy implements Strategy {
   avgGainMap: WeakMap<HistoryTick, number> = new WeakMap();
   avgLossMap: WeakMap<HistoryTick, number> = new WeakMap();
   rsi: WeakMap<HistoryTick, number> = new WeakMap();
-  stockRsiSmma: WeakMap<HistoryTick, number> = new WeakMap();
+  stochRsiMap: WeakMap<HistoryTick, number> = new WeakMap();
+  stochRsiSmma: WeakMap<HistoryTick, number> = new WeakMap();
+  
 
-
-  getRsi(t: HistoryTick, saveAverages = false): number {
-
+  getRsi(t: HistoryTick): number {
     if (this.rsi.has(t)) {
       return this.rsi.get(t);
     } else {
       // first time calc
       if (t.previous === null || !this.avgGainMap.has(t.previous))  {
-        // console.log('first time calc');
-
         const windowOfTicks = getNPrevious(t, 15, true);      
-
         if (windowOfTicks.length < 15) {
-          // console.log(`Not enough data yet to calculate the RSI, only ${windowOfTicks.length} data points`);
+          console.log(`Not enough data yet to calculate the RSI, only ${windowOfTicks.length} data points`);
           return null;
         }
-
         const windowOfGainsAndLosses = diff(windowOfTicks.map(x => x.close));
         const { avgGain, avgLoss, rsi }  = calculateRsiFirst(windowOfGainsAndLosses);
         this.avgGainMap.set(t, avgGain);
         this.avgLossMap.set(t, avgLoss);
         this.rsi.set(t, rsi);
-
       } else {
         const previousAvgGain: number = this.avgGainMap.get(t.previous);
         const previousAvgLoss: number = this.avgLossMap.get(t.previous);
@@ -65,31 +60,64 @@ class RsiStochRsiStrategy implements Strategy {
         this.rsi.set(t, rsi);
       }
     }
-
     return this.rsi.get(t);
   }
 
-  // getStochRsi(t: HistoryTick) {
-  //   const rsiValues = getNPrevious(t, 14, true).map(tick => {
-  //     const rsi = this.getRsi(tick);
-  //     return rsi;
-  //     // const rsiWindow = diff(getNPrevious(t, 14, true).map(x => x.close));
-  //     // return calculateRsi(rsiWindow);
-  //   });
-  //   const currentRsiStoch = calculateStochRsi(rsiValues, 14);
-  //   return currentRsiStoch;
-  // }
+  getStochRsi(t: HistoryTick) {
+    // console.log('hello?');
+    // console.log(this);
+    if (this.stochRsiMap.has(t)) {
+      // console.log('but not here');
+      return this.stochRsiMap.get(t);
+    }
+    // console.log(1);
+    const windowOfTicks = getNPrevious(t, 14, true);
+    // console.log(2)
+    const windowOfRsiValues = windowOfTicks.map(x => this.getRsi(x)).filter(x => x !== null);
+    // console.log(3)
 
-  // averageLastThreeStochRsi(t: HistoryTick) {
-  //   return calculateSmmaFirstTime(
-  //     getNPrevious(t, 3, true)
-  //       .map(x => this.getRsi(t))
-  //   );
-  // }
+    if (windowOfRsiValues.length < 14) {
+      console.log(`Stoch RSI unable to calc yet, not enough data points (detected ${windowOfRsiValues.length} vs required 14`);
+      return null;
+    }
 
-  // updateStochRsiSmma(currentStochRsi: number) {
-  //   return calculateSmmaSubsequent(this.stochRsiSmma, currentStochRsi, 3)
-  // }
+    const stochRsi = calculateStochRsi(windowOfRsiValues, 14);
+    this.stochRsiMap.set(t, stochRsi);
+
+    return this.stochRsiMap.get(t);
+  }
+
+  getStockRsiSmma(t: HistoryTick) {
+    if (this.stochRsiSmma.has(t)) {
+      return this.stochRsiSmma.get(t);
+    }
+    // console.log('0')
+    const windowOfTicks = getNPrevious(t, 3, true);
+    // console.log('01');
+    // console.log(windowOfTicks);
+    const fn = this.getStochRsi.bind(this);
+    const windowOfStochRsiValues = windowOfTicks.map(x => fn(x)).filter(x => x !== null);
+    // console.log('her');
+
+    // have enough to get the stockrsismma
+    if (windowOfStochRsiValues.length > 0) {
+      if (t.previous !== null || !this.getStockRsiSmma(t.previous)) {
+        // first time, set up the smma
+        const stochRsiSmma = calculateSmmaFirstTime(windowOfStochRsiValues);
+        this.stochRsiSmma.set(t, stochRsiSmma);
+        return stochRsiSmma;
+      } else {
+        // existing smma
+        const previousSmma = this.stochRsiSmma.get(t.previous);
+        const currentStochRsi = this.stochRsiMap.get(t);
+        const stochRsiSmma = calculateSmmaSubsequent(previousSmma, currentStochRsi, 3);
+        this.stochRsiSmma.set(t, stochRsiSmma);
+        return stochRsiSmma;
+      }
+    } else {
+      return null;
+    }
+  }
 
   run(t: TicksContainer) {
     if (t === null) {
@@ -98,24 +126,8 @@ class RsiStochRsiStrategy implements Strategy {
     }
 
     const rsi = this.getRsi(t.pointer);
-    console.log(`${t.pointer.timestamp}:\t${rsi}`);
-    // const stochRsi = this.getStochRsi(t.pointer);
-    // const stockRsiSmma = (this.stochRsiSmma !== null) 
-    //   ? this.averageLastThreeStochRsi(t.pointer)
-    //   : this.updateStochRsiSmma(stochRsi)
-
-    // const previousRsi = this.rsi;
-    // const previousStochRsiSmma = this.stochRsiSmma;
-    // console.log(rsi, stochRsi, t.pointer.timestamp);
-    // if (
-    //   (previousRsi < rsi && previousStochRsiSmma > stockRsiSmma)      
-    // ) {
-    //   console.log('rsi going up');
-    // }
-    
-    // // Update to latest
-    // this.rsi = rsi;
-    // this.stochRsiSmma = stockRsiSmma;
+    const stochRsi = this.getStockRsiSmma(t.pointer);
+    console.log(`${t.pointer.timestamp}:\t${rsi}\t -- ${stochRsi}`);
   }
 }
 
