@@ -7,12 +7,12 @@ import { RsiStochRsiStrategy } from './strategies/rsi-stochrsi';
 const refresh = async (x: any) => {
   await x.getLatestHistoryTicks();
   setTimeout(() => refresh(x), 1500);
-}
+};
 
 const bootup = async () => {
   const repo = new BittrexRepository(
-    BittrexRepository.availableCurrencyPairs.USDT_BTC, 
-    BittrexRepository.availableTickIntervals.THIRTY_MINUTES
+    BittrexRepository.availableCurrencyPairs.USDT_BTC,
+    BittrexRepository.availableTickIntervals.ONE_HOUR
   );
 
   const account = new BittrexAccount();
@@ -27,23 +27,36 @@ const bootup = async () => {
   const currencyA = 'USDT';
   const currencyB = 'BTC';
 
-  const foo = new TicksContainer('BTC-NEO-ONEMINUTE', repo, currencyA, currencyB);
-  foo.registerUpdate((newEntity) => {
+  const foo = new TicksContainer(
+    'BTC-NEO-ONEMINUTE',
+    repo,
+    currencyA,
+    currencyB
+  );
+  foo.registerUpdate(newEntity => {
     // console.log('new ent', Object.keys(newEntity));
     try {
       const trades = strat.run(newEntity);
-      trader.attemptTrades(trades)
+      trader.attemptTrades(trades);
     } catch (e) {
       console.log(e);
       throw e;
     }
 
-    console.log(`Balances:\n\t${currencyA}: ${account.checkBalance(currencyA)}\n\t${currencyB}: ${account.checkBalance(currencyB)}`);
+    console.log(
+      `Balances:
+      \t${currencyA}: ${account.checkBalance(currencyA)}
+      \t${currencyB}: ${account.checkBalance(
+        currencyB
+      )} (current price @ ${newEntity.pointer.close})
+      [Estimated value: ${account.checkBalance(currencyA) +
+        account.checkBalance(currencyB) * newEntity.pointer.close}]`
+    );
     return {};
-  })
+  });
 
   refresh(foo);
-}
+};
 
 //   let accountBalanceUSD_BuyAndHold = 1000.0;
 //   let accountBalanceCOIN_BuyAndHold = 0.0;
@@ -98,10 +111,10 @@ const bootup = async () => {
 //         accountBalanceUSD += profit;
 //         accountBalanceCOIN = 0.0;
 //         console.log(`selling @ ${lastOversoldCandle.close}!, new account balance (USD): ${accountBalanceUSD}`);
-        
+
 //         // accountBalanceUSD_BuyAndHold -= buyAmount;
 //         // accountBalanceCOIN = (buyAmount_BuyAndHold / lastOversoldCandle.close);
-  
+
 //         // const profit = lastOversoldCandle.close - lastUndersoldCandle.close;
 //         // console.log(profit);
 //         // profits += profit;
@@ -115,8 +128,6 @@ const bootup = async () => {
 //         // lastOversoldCandle = null;
 
 //       }
-
-
 
 //     }
 
@@ -137,9 +148,9 @@ const bootup = async () => {
 //       }
 //     }
 
-//     // if ( 
+//     // if (
 //     //   (candle.rsi > 30 && candle.stochRsi <= 20
-//     //   && 
+//     //   &&
 //     //   prevRsiLow && prevRsiStochLow)) {
 
 //     //     prevRsiStochLow = false;
@@ -157,7 +168,6 @@ const bootup = async () => {
 //     //     }
 //     //   }
 
-
 //     if (candle.rsi <= 30 && candle.smma <= 20) {
 //       // console.log('setting lowest');
 //       console.log(`low rsi: ${candle.rsi}, stoch: ${candle.smma}, stamp: ${candle.timestamp}`);
@@ -166,7 +176,6 @@ const bootup = async () => {
 
 //       // console.log('undersold');
 //     }
-
 
 //   }
 
@@ -200,7 +209,7 @@ const bootup = async () => {
 
 (async () => {
   try {
-    await bootup();    
+    await bootup();
   } catch (e) {
     console.log('Error running app, dumping error');
     console.error(e);

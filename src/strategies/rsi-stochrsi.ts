@@ -73,7 +73,7 @@ class RsiStochRsiStrategy implements Strategy {
         currencyB: t.currencyB,
         type: TradeType.SELL,
         currentPrice: t.pointer.close,
-      }
+      };
       return [trade];
     } else if (
       this.hasBrokenOversoldThresholdRecently &&
@@ -95,7 +95,7 @@ class RsiStochRsiStrategy implements Strategy {
         currencyB: t.currencyB,
         type: TradeType.BUY,
         currentPrice: t.pointer.close,
-      }
+      };
       return [trade];
     } else if (
       this.hasBrokenUndersoldThresholdRecently &&

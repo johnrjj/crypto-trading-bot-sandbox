@@ -4,7 +4,7 @@ import { Trade, TradeType } from '../types/trade';
 class Trader {
   account: Account;
   tradeCount: number = 0;
-  tradePercent: number = .30;
+  tradePercent: number = 0.3;
   minimumTradeAmount: number = 0.000001;
   constructor(account: Account) {
     this.account = account;
@@ -13,12 +13,12 @@ class Trader {
   attemptTrades(trades: Array<Trade>) {
     if (trades === null || trades.filter(x => x !== null).length === 0) {
       return;
-    } 
+    }
     // console.log(`New trades incoming!`, trades);
 
     trades.forEach(trade => {
       const currencyA = trade.currencyA;
-      const currencyB  = trade.currencyB;
+      const currencyB = trade.currencyB;
 
       const currentPrice = trade.currentPrice;
 
@@ -30,29 +30,47 @@ class Trader {
         const amountGettingInCurrencyB = amountToBuyInCurrencyA / currentPrice;
         // console.log(`spending ${amountToBuyInCurrencyA} to get ${amountGettingInCurrencyB} (@ ${currentPrice}`);
 
-        const haveEnoughCurrencyAToExecuteTrade = (this.account.checkBalance(currencyA) >= amountToBuyInCurrencyA);
-        if (haveEnoughCurrencyAToExecuteTrade && amountToBuyInCurrencyA > this.minimumTradeAmount) {
+        const haveEnoughCurrencyAToExecuteTrade =
+          this.account.checkBalance(currencyA) >= amountToBuyInCurrencyA;
+        if (
+          haveEnoughCurrencyAToExecuteTrade &&
+          amountToBuyInCurrencyA > this.minimumTradeAmount
+        ) {
           this.account.withdrawl(currencyA, amountToBuyInCurrencyA);
           this.account.deposit(currencyB, amountGettingInCurrencyB);
-          console.log(`buy executed, new balance of A: ${this.account.checkBalance(currencyA)}\tB: ${this.account.checkBalance(currencyB)}`);
+          console.log(
+            `buy executed, new balance of A: ${this.account.checkBalance(
+              currencyA
+            )}\tB: ${this.account.checkBalance(currencyB)}`
+          );
         }
 
         // buy b
       } else if (trade.type === TradeType.SELL) {
         const hasFundsToSell = this.account.checkBalance(currencyB) > 0;
         if (hasFundsToSell) {
-          console.log(`currently holding ${this.account.checkBalance(currencyB)} of ${currencyB}`);
-          const withdrawlAmountOfCurrencyB = this.account.checkBalance(currencyB);
-          console.log(`about to withdrawl ${withdrawlAmountOfCurrencyB} out of ${this.account.checkBalance(currencyB)}`)
+          console.log(
+            `currently holding ${this.account.checkBalance(
+              currencyB
+            )} of ${currencyB}`
+          );
+          const withdrawlAmountOfCurrencyB = this.account.checkBalance(
+            currencyB
+          );
+          console.log(
+            `about to withdrawl ${withdrawlAmountOfCurrencyB} out of ${this.account.checkBalance(
+              currencyB
+            )}`
+          );
           this.account.withdrawl(currencyB, withdrawlAmountOfCurrencyB);
-          const depositAmountofCurrencyA = withdrawlAmountOfCurrencyB * currentPrice;
+          const depositAmountofCurrencyA =
+            withdrawlAmountOfCurrencyB * currentPrice;
           this.account.deposit(currencyA, depositAmountofCurrencyA);
         }
       }
     });
   }
 }
-
 
 //       const buyAmount = accountBalanceUSD * tradePercent;
 //       // console.log('account balane', accountBalanceUSD);
@@ -64,21 +82,19 @@ class Trader {
 //         maxLowSeenRecently = Math.max(maxLowSeenRecently, lastUndersoldCandle.close);
 //       }
 
-        // const sellAmount = accountBalanceCOIN;
-        // const profit = sellAmount * lastOversoldCandle.close;
-        // accountBalanceUSD += profit;
-        // accountBalanceCOIN = 0.0;
-        // console.log(`selling @ ${lastOversoldCandle.close}!, new account balance (USD): ${accountBalanceUSD}`);
-        
-        // // accountBalanceUSD_BuyAndHold -= buyAmount;
-        // // accountBalanceCOIN = (buyAmount_BuyAndHold / lastOversoldCandle.close);
-  
-        // // const profit = lastOversoldCandle.close - lastUndersoldCandle.close;
-        // // console.log(profit);
-        // // profits += profit;
-        // tradeCount++;
-        // maxLowSeenRecently = 0;
+// const sellAmount = accountBalanceCOIN;
+// const profit = sellAmount * lastOversoldCandle.close;
+// accountBalanceUSD += profit;
+// accountBalanceCOIN = 0.0;
+// console.log(`selling @ ${lastOversoldCandle.close}!, new account balance (USD): ${accountBalanceUSD}`);
 
-export { 
-  Trader,
-};
+// // accountBalanceUSD_BuyAndHold -= buyAmount;
+// // accountBalanceCOIN = (buyAmount_BuyAndHold / lastOversoldCandle.close);
+
+// // const profit = lastOversoldCandle.close - lastUndersoldCandle.close;
+// // console.log(profit);
+// // profits += profit;
+// tradeCount++;
+// maxLowSeenRecently = 0;
+
+export { Trader };
