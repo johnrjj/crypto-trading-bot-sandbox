@@ -11,9 +11,9 @@ const getNPrevious = <T extends LinkedListLike<T>>(current: T, numberToRetrieve:
   let accum = [];
   let counter = includeSelf ? numberToRetrieve - 1 : numberToRetrieve;
   if (includeSelf) {
-    accum.push(current);
+    accum.push(pointer);
   }
-  while (counter > 0 && pointer !== null && pointer.previous !== null) {
+  while (counter > 0 && pointer && pointer.previous !== null) {
     accum.push(pointer.previous);
     pointer = pointer.previous;
     counter--;

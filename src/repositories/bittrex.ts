@@ -29,6 +29,7 @@ interface BittrexHistoryTickResponse {
 
 enum availableCurrencyPairs {
   BTC_ETH = 'BTC-ETH',
+  ETH_BTC = 'ETH-BTC',
   BTC_NEO = 'BTC-NEO',
 }
 
@@ -74,7 +75,8 @@ const convertBittrexHistoryTickToDomain = (b: BittrexHistoryTickResponse) => {
 }
 
 class BittrexRepository implements Repository {
-  availableCurrencyPairs: availableCurrencyPairs;
+  static availableCurrencyPairs = availableCurrencyPairs;
+  static availableTickIntervals = availableTickIntervals;
   currencyPair: availableCurrencyPairs;
   tickInterval: availableTickIntervals
   constructor(currencyPair: availableCurrencyPairs, tickInterval: availableTickIntervals) {
@@ -99,6 +101,4 @@ class BittrexRepository implements Repository {
 
 export {
   BittrexRepository,
-  availableCurrencyPairs,
-  availableTickIntervals,
 }

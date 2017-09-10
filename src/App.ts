@@ -1,18 +1,10 @@
-// import { getCandlesFromCsv } from './load-csv';
-import { getTicksFromStaticJson } from './parse-api-json';
-import { BittrexRepository, availableCurrencyPairs, availableTickIntervals } from './repositories/bittrex';
+import { BittrexRepository } from './repositories/bittrex';
 import { TicksContainer } from './types/ticker';
-// import { calculateRsi } from './algo/rsi';
-// import { calculateStochRsi } from './algo/stoch-rsi';
-// import { calculateStochRsiSmma } from './algo/smoothed-moving-average';
-
-// import { Candle } from './types/candle';
-import { ApiTick } from './types/api';
+import { RsiStochRsiStrategy } from './strategies/rsi-stochrsi'
 
 const DEFAULT_TRADING_EXCHANGE = 'bittrex';
 const DEFAULT_TRADING_WINDOWS = ['fiveMin', '30min'];
 const DEFAULT_TRADING_CURRENCY = ['BTC-ETH'];
-
 
 const pairs = {
   'BTC-ETH': {
@@ -34,41 +26,35 @@ const pairs = {
 // }
 
 const refresh = async (x: any) => {
-  console.log('refresh');
   await x.getLatestHistoryTicks();
   setTimeout(() => refresh(x), 1500);
 }
 
 const bootup = async () => {
-  const repo = new BittrexRepository(availableCurrencyPairs.BTC_ETH, availableTickIntervals.ONE_MINUTE);
+  const repo = new BittrexRepository(
+    BittrexRepository.availableCurrencyPairs.BTC_NEO, 
+    BittrexRepository.availableTickIntervals.ONE_MINUTE
+  );
+
   const initialHistory = await repo.getTicks();
-  // const current = await BittrexRepository.getCurrentTick('BTC-ETH');
-  const foo = new TicksContainer('BTC-USD-fiveMin', repo, initialHistory);
+
+  const strat = new RsiStochRsiStrategy();
+
+  const foo = new TicksContainer('BTC-USD-fiveMin', repo);
+  foo.registerUpdate((newEntity) => {
+    // console.log('new ent', Object.keys(newEntity));
+    try {
+      strat.run(newEntity);      
+    } catch (e) {
+      console.log(e);
+      throw e;
+    }
+    return {};
+  })
+
   refresh(foo);
   // console.log(JSON.stringify(current));
 }
-
-
-// const convertApiToDomain = (tick: ApiTick) => {
-//   const c: Candle = {
-//     timestamp: tick.T,
-//     open: tick.O,
-//     close: tick.C,
-//     high: tick.H,
-//     low: tick.L,
-//     volume: tick.V,
-//     baseVolume: tick.BV,
-//     next: null,
-//     previous: null,
-//   }
-//   return c;
-// }
-
-// const linkCandle = (current: Candle, next: Candle, previous: Candle) => {
-//   current.next = next;
-//   current.previous = previous;
-//   return;
-// }
 
 // const run = async () => {
 //   console.log('starting');

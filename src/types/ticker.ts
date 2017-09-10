@@ -6,34 +6,45 @@ import { last } from 'lodash';
 class TicksContainer {
   pointer: HistoryTick = null;
   processQueue: Array<HistoryTick> = [];
+  callbacks = [];
   repository: Repository;
   key: string;
-  constructor(key, repository: Repository, initialHistory: Array<HistoryTick>) {
+  constructor(key, repository: Repository, initialHistory: Array<HistoryTick> = []) {
     this.key = key;
     this.repository = repository;
     this.processQueue = [...initialHistory];
+    this.processQueueStart();
+    console.log('Finished processing initial history');
+  }
+
+
+  registerUpdate(fn: (t: TicksContainer) => {}) {
+    this.callbacks.push(fn);
+  }
+
+  getLatestHistoryTicks = async () => {
+    console.log(`Checking for new ticks for ${this.key}`);
+    const lastSeenHistoryTickTimestamp = (this.pointer && this.pointer.timestamp) || null;
+    const latestHistory = await this.repository.getTicks();
+    const historyNotYetProcessed: Array<HistoryTick> = latestHistory.filter(x => lastSeenHistoryTickTimestamp 
+      ? x.timestamp > lastSeenHistoryTickTimestamp
+      : true);
+    if (historyNotYetProcessed.length > 0) {
+      console.log(`${historyNotYetProcessed.length} new history items for ${this.key}`);
+    }
+    this.processQueue = [...historyNotYetProcessed];
+    this.processQueueStart();
+  }
+
+  public addItem(item: HistoryTick) {
+  }
+
+  processQueueStart() {
     while (this.processQueue.length > 0) {
       const [x, ...rest] = this.processQueue;
       this.processItem(x);
       this.processQueue = rest;
     }
-    console.log('Finished processing initial history');
-  }
-
-  getLatestHistoryTicks = async () => {
-    console.log('getting new history');
-    const lastSeenHistoryTickTimestamp = this.pointer && this.pointer.timestamp;
-    const latestHistory = await this.repository.getTicks();
-    console.log(last(latestHistory).timestamp);
-    const historyNotYetProcessed: Array<HistoryTick> = latestHistory.filter(x => x.timestamp > lastSeenHistoryTickTimestamp);
-    if (historyNotYetProcessed.length > 0) {
-      console.log('new history!!', JSON.stringify(historyNotYetProcessed));      
-    }
-  }
-
-  public addItem(item: HistoryTick) {
-
-
   }
 
   processItem(item: HistoryTick) {
@@ -45,7 +56,10 @@ class TicksContainer {
     item.previous = this.pointer;
     // Set current pointer to the new item
     this.pointer = item;
-    // console.log(`Added ${uuid}`);
+    console.log(`Added ${uuid}`);
+    this.callbacks.forEach(cb => {
+      cb(this);
+    });
   }
 
 
