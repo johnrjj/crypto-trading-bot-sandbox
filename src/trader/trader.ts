@@ -39,9 +39,9 @@ class Trader {
           this.account.withdrawl(currencyA, amountToBuyInCurrencyA);
           this.account.deposit(currencyB, amountGettingInCurrencyB);
           console.log(
-            `buy executed, new balance of A: ${this.account.checkBalance(
+            `Buying ${currencyB} @ ${currentPrice}, new balance of ${currencyA}: ${this.account.checkBalance(
               currencyA
-            )}\tB: ${this.account.checkBalance(currencyB)}`
+            )}\t${currencyB}: ${this.account.checkBalance(currencyB)}`
           );
         }
 
@@ -49,23 +49,24 @@ class Trader {
       } else if (trade.type === TradeType.SELL) {
         const hasFundsToSell = this.account.checkBalance(currencyB) > 0;
         if (hasFundsToSell) {
-          console.log(
-            `currently holding ${this.account.checkBalance(
-              currencyB
-            )} of ${currencyB}`
-          );
+          // console.log(
+          //   `currently holding ${this.account.checkBalance(
+          //     currencyB
+          //   )} of ${currencyB}`
+          // );
           const withdrawlAmountOfCurrencyB = this.account.checkBalance(
             currencyB
           );
-          console.log(
-            `about to withdrawl ${withdrawlAmountOfCurrencyB} out of ${this.account.checkBalance(
-              currencyB
-            )}`
-          );
+
           this.account.withdrawl(currencyB, withdrawlAmountOfCurrencyB);
           const depositAmountofCurrencyA =
             withdrawlAmountOfCurrencyB * currentPrice;
           this.account.deposit(currencyA, depositAmountofCurrencyA);
+          console.log(
+            `Selling all of ${currencyB} @ ${currentPrice}, new balance of ${currencyA}: ${this.account.checkBalance(
+              currencyA
+            )}`
+          );
         }
       }
     });

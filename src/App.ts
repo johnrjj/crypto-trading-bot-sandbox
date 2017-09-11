@@ -3,6 +3,7 @@ import { BittrexAccount } from './accounts/bittrex';
 import { Trader } from './trader/trader';
 import { TicksContainer } from './types/ticker';
 import { RsiStochRsiStrategy } from './strategies/rsi-stochrsi';
+import { InterExchangeArbitrationStrategy } from './strategies/arb';
 
 const refresh = async (x: any) => {
   await x.getLatestHistoryTicks();
@@ -11,28 +12,27 @@ const refresh = async (x: any) => {
 
 const bootup = async () => {
   const repo = new BittrexRepository(
-    BittrexRepository.availableCurrencyPairs.USDT_BTC,
-    BittrexRepository.availableTickIntervals.ONE_HOUR
+    BittrexRepository.availableCurrencyPairs.BTC_ARK,
+    BittrexRepository.availableTickIntervals.THIRTY_MINUTES
   );
 
   const account = new BittrexAccount();
-  account.deposit('USDT', 1000);
+  account.deposit('BTC', 1);
 
   const initialHistory = await repo.getTicks();
 
   const strat = new RsiStochRsiStrategy();
+  // const arbStrat = new InterExchangeArbitrationStrategy();
+
+  // const currentTicksOfAllCurrencyPairs = await repo.getMarketSummary();
+  // arbStrat.run(currentTicksOfAllCurrencyPairs);
 
   const trader = new Trader(account);
 
-  const currencyA = 'USDT';
-  const currencyB = 'BTC';
+  const currencyA = 'BTC';
+  const currencyB = 'SYS';
 
-  const foo = new TicksContainer(
-    'BTC-NEO-ONEMINUTE',
-    repo,
-    currencyA,
-    currencyB
-  );
+  const foo = new TicksContainer('BTC-SYS-thirty', repo, currencyA, currencyB);
   foo.registerUpdate(newEntity => {
     // console.log('new ent', Object.keys(newEntity));
     try {
@@ -43,15 +43,15 @@ const bootup = async () => {
       throw e;
     }
 
-    console.log(
-      `Balances:
-      \t${currencyA}: ${account.checkBalance(currencyA)}
-      \t${currencyB}: ${account.checkBalance(
-        currencyB
-      )} (current price @ ${newEntity.pointer.close})
-      [Estimated value: ${account.checkBalance(currencyA) +
-        account.checkBalance(currencyB) * newEntity.pointer.close}]`
-    );
+    // console.log(
+    //   `Balances:
+    //   \t${currencyA}: ${account.checkBalance(currencyA)}
+    //   \t${currencyB}: ${account.checkBalance(
+    //     currencyB
+    //   )} (current price @ ${newEntity.pointer.close})
+    //   [Estimated value: ${account.checkBalance(currencyA) +
+    //     account.checkBalance(currencyB) * newEntity.pointer.close}]`
+    // );
     return {};
   });
 

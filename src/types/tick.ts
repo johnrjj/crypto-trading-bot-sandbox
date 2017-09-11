@@ -1,6 +1,25 @@
-interface Tick {}
+interface Tick {
+  next: CurrentTick | HistoryTick;
+  previous: HistoryTick;
+}
 
-interface CurrentTick extends Tick {}
+interface CurrentTick extends Tick {
+  bid: number;
+  ask: number;
+  last: number;
+  low?: number;
+  high?: number;
+  marketName?: string;
+  volume?: number;
+  baseVolume?: number;
+  timeStamp?: string;
+  openBuyOrders?: number;
+  openSellOrders?: number;
+  prevDay?: number;
+  created?: string;
+  previous: null;
+  next: null;
+}
 
 interface HistoryTick extends Tick {
   timestamp: string;
@@ -15,4 +34,4 @@ interface HistoryTick extends Tick {
   uuid?: string;
 }
 
-export { HistoryTick };
+export { HistoryTick, CurrentTick, Tick };
