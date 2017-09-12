@@ -45,8 +45,9 @@ interface BittrexMarketSummaryResponse {
 
 enum availableCurrencyPairs {
   BTC_ETH = 'BTC-ETH',
+  BTC_LTC = 'BTC-LTC',
   USDT_BTC = 'USDT-BTC',
-  ETH_BTC = 'ETH-BTC',
+  USDT_ETH = 'USDT-ETH',
   BTC_NEO = 'BTC-NEO',
   BTC_ARK = 'BTC-ARK',
   BTC_SYS = 'BTC-SYS',
